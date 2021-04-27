@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>搜索</title>
+    <script src="js/jquery-3.3.1.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/getParameter.js"></script>
+    <script src="js/include.js"></script>
+    <script src="js/aos.js"></script>
+
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/aos.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="fonts/icomoon/style.css">
+
+    <script>
+        $(function () {
+            //var search = location.search;
+            // //切割字符串，拿到cid的值
+            // var cid = search.split("=")[1];
+            //获取cid和rname
+            var cid = getParameter("cid");
+            var rname = getParameter("rname");
+            if (rname){
+                //如果rname存在且不为空
+                //解码
+                rname = decodeURIComponent(rname);
+            }
+            //当页面加载完成，调用load方法，发送ajax请求加载数据
+            load(cid,null,rname);
+        })
+        function load(cid,currentPage,rname) {
+            $.get("route/pageQuery", {cid:cid,currentPage:currentPage,rname:rname},function (pb) {
+                //解析数据
+                //分页工具条数据展示
+                var totalPage = pb.totalPage;
+                var totalCount = pb.totalCount;
+                $("#totalCount").html(totalCount);
+                $("#totalPage").html(totalPage);
+                //展示分页页码
+
+                var page_lis = '';
+                var firstPage = '<a  href="javascript:load(' + cid + ',1, \''+rname +'\' )">首页</a>';
+                var beforePageNum = pb.currentPage - 1;
+                if (beforePageNum <= 0){
+                    beforePageNum = 1;
+                }
+                var beforePage = '<a  href="javascript:load(' + cid + ',' + beforePageNum + ', \''+rname +'\' )">Prev</a>';
+                page_lis += firstPage;
+                page_lis += beforePage;
+
+                //开始位置
+                var begin;
+                //结束位置
+                var end;
+                //要显示十个页码,前5后4
+
+                if (totalPage<10){
+                    //总共不够十个页码
+                    begin = 1;
+                    end = totalPage;
+                }else {
+                    //总页码超过十页
+                    begin = pb.currentPage - 5;
+                    end = pb.currentPage + 4;
+                    if(begin <= 0){
+                        //当前页码是前四页内
+                        begin = 1;
+                        end = 10;
+                    }
+                    if(end > totalPage){
+                        //当前页码后面已不足四页
+                        begin = totalPage - 9;
+                        end = totalPage;
+                    }
+                }
+                for (let i = begin; i <= end; i++) {
+                    //判断该页面是否为当前页码
+                        if(pb.currentPage == i){
+                            var page_li = '<a class="active"  href="javascript:load(' + cid + ',' + i + ', \''+rname +'\' )">' + i + '</a></li>';
+                        }else {
+                            //创建一个页码的li
+                            var page_li = '<a  href="javascript:load(' + cid + ',' + i + ', \''+rname +'\' )">' + i + '</a>';
+                        }
+
+                        //拼接字符串
+                        page_lis += page_li;
+                }
+                var nextPageNum = pb.currentPage + 1;
+                if (nextPageNum > totalPage){
+                    nextPageNum = totalPage
+                }
+                var nextPage = '<a  href="javascript:load(' + cid + ',' + nextPageNum + ', \''+rname +'\' )">Next</a>';
+                var endPage = '<a  href="javascript:load(' + cid + ',' + totalPage + ', \''+rname +'\' )">末页</a>';
+                page_lis += nextPage;
+                page_lis += endPage;
+                //将page_lis内容添加到ul中
+                $("#pageNum").html(page_lis);
+
+
+                //列表数据展示
+                var route_lis = '';
+                for (let i = 0; i < pb.list.length; i++) {
+                    //{rid:xx,rname:xxx ...}
+                    var route = pb.list[i];
+                    var route_li = '  <div class="col-3 col-md-3 col-lg-3">         ' +
+                                   '    <div class="item">\n' +
+                    '                        <div>\n' +
+                    '                            <a href="route_detail.html?rid='+ route.rid +'"><img  style="width: 100%" src="'+ route.rimage +'" alt="Image" class="img-fluid"></a>\n' +
+                    '                        </div>\n' +
+                    '                        <div >\n' +
+                    '                            <h7><a href="route_detail.html?rid='+ route.rid +'" class="name" style="font-weight: bold">' + route.rname + '</a></h7>\n' +
+                    '                            <div class="d-flex mb-2">\n' +
+                    '                                <span class="name" style="color: black">' + route.routeIntroduce + '</span>\n' +
+                    '                            </div>\n' +
+                    '                            <a href="route_detail.html?rid='+ route.rid +'" class="btn" style="padding: 7px 15px;font-weight: bold;color: red"><span>&yen;</span>' + route.price + ' 起</a>\n' +
+                    '                        </div>\n' +
+                    '                   </div> </div>'
+                    route_lis += route_li;
+                }
+                //将route_lis内容添加到ul当中
+                $("#route").html(route_lis);
+
+
+                //热门推荐
+                //获取收藏前十名
+                $.get('favorite/findAllFavorite',{pageSize:10},function (pb) {
+                    var list = pb.list;
+                    var li = '';
+                    for (let i = 0; i < list.length; i++) {
+                        li += '                    <li class="d-flex justify-content-between align-items-center">\n' +
+                            '                        <a href="route_detail.html?rid=' + list[i].route.rid + '" class="d-flex align-items-center">\n' +
+                            '                            <span class="mr-2" style="color: black">'+ (i+1) +'.</span>\n' +
+                            '                            <div class="d-flex align-items-center">\n' +
+                            '                                <img src="' + list[i].route.rimage + '" alt="Image" class="mr-2">\n' +
+                            '                                <span class="name" style="color: black">' + list[i].route.rname + '</span>\n' +
+                            '                            </div>\n' +
+                            '                        </a>\n' +
+                            '                        <span class="price">&yen;' + list[i].route.price + '</span>\n' +
+                            '                    </li>'
+                    }
+                    $("#hot").html(li);
+                })
+                //定位到页面顶部
+                window.scrollTo(0,0);
+            })
+        }
+    </script>
+    <style>
+        .name{
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp:2;  /* 设置行数 */
+            -webkit-box-orient: vertical
+        }
+        #pageNum a{
+            margin-right: 15px;
+        }
+    </style>
+</head>
+<body data-spy="scroll" data-target=".site-navbar-target" data-offset="300">
+
+    <div id="header"></div>
+
+    <div class="site-section" style="padding-bottom: 0">
+        <div class="container" style="padding-top: 40px">
+            <div class="row">
+                <div class="col-md-9">
+                    <div class=" auctions-entry" id="route" style="display: flex;flex-wrap: wrap;margin: 0">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="side-box">
+                        <h3>热门推荐</h3>
+                        <ul class="list-unstyled bidders" id="hot">
+                        </ul>
+                    </div>
+                </div>
+                <div class="page_num_inf" style="color: black;height: 40px;line-height: 40px;padding-left: 20px">
+                    <i></i> 共
+                    <span id="totalPage"></span> 页 <span id="totalCount"></span> 条记录
+                </div>
+                <div class="custom-pagination col-lg">
+                    <ul id="pageNum" >
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+<script src="js/main.js"></script>
+</html>

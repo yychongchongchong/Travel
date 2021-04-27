@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>收藏排行榜</title>
+        <script src="js/jquery-3.3.1.min.js"></script>
+        <script src="js/include.js"></script>
+        <script src="js/aos.js"></script>
+
+        <link rel="stylesheet" href="css/bootstrap.min.css">
+        <link rel="stylesheet" href="css/style.css">
+        <link rel="stylesheet" href="css/ranking-list.css">
+        <link rel="stylesheet" href="fonts/icomoon/style.css">
+
+    </head>
+    <script>
+        $(function () {
+            //加载数据
+            load(1,null,null,null);
+
+            //给搜索绑定单击事件
+            $("#search_route").click(function () {
+                //获取input里的参数
+                var rname = $("#root_name").val();
+                var min_price = $("#min_price").val();
+                var max_price = $("#max_price").val();
+
+                var reg_price = /^\d*$/;
+                //判断金额输入格式是否正确
+                if((min_price - max_price) > 0 || !reg_price.test(min_price) || !reg_price.test(max_price)){
+                    alert("金额格式输入有误！");
+                }else {
+                    //发送ajax请求获取数据
+                    //加载页面
+                    //解码
+                    rname = decodeURIComponent(rname);
+                    load(1,rname,min_price,max_price);
+                }
+
+            })
+        })
+        function load(currentPage,rname,min_price,max_price) {
+            //参数处理
+            if(rname == ''){
+                rname = null;
+            }
+            if(min_price == ''){
+                min_price = null;
+            }
+            $.get('favorite/findAllFavorite',{currentPage:currentPage,rname:rname,min_price:min_price,max_price:max_price},function (pb) {
+                //解析数据
+                var totalCount = pb.totalCount;
+                var totalPage = pb.totalPage;
+                var list = pb.list;
+                var li = '';
+                for (let i = 0; i < list.length; i++) {
+                    li += '<li>\n' +
+                        '      <span class="num one" style="font-weight: bold;color: black">' + (i+1) +'</span>\n' +
+                        '      <a href="route_detail.html?rid=' + list[i].rid + '"><img src="' + list[i].route.rimage + '" alt=""></a>\n' +
+                        '      <h4><a href="route_detail.html?rid=' + list[i].rid + '">' + list[i].route.rname + '</a></h4>\n' +
+                        '      <p>\n' +
+                        '      <b class="price">&yen;<span>' + list[i].route.price + '</span>起</b>\n' +
+                        '      <span class="shouchang">已收藏<span>' + list[i].route.count + '</span>次</span>\n' +
+                        '      </p>\n' +
+                        '</li>'
+                }
+                $("#allFavorite").html(li);
+
+                // var rname = $("#root_name").val();
+                // var min_price = $("#min_price").val();
+                // var max_price = $("#max_price").val();
+
+                //分页操作
+                //设置总页码数和总条数
+                $("#totalPage").html(totalPage);
+                $("#totalCount").html(totalCount);
+
+
+                //设置当前页码始终处于前五后四的位置
+                //开始位置
+                var begin;
+                //结束位置
+                var end;
+                //显示十个页码，前五后四
+                if(totalPage < 10){
+                    begin = 1;
+                    end = totalPage;
+                }else {
+                    begin = currentPage - 5;
+                    end = currentPage + 4;
+                    if(begin < 1){
+                        //当前页码处于前五页
+                        begin = 1;
+                        end = 10;
+                    }if(end > totalPage){
+                        //当前页码在倒数前四页
+                        end = totalPage;
+                        begin = totalPage - 9;
+                    }
+                }
+                //设置页码
+                var firstPage = '<a href="javascript:load(' + 1 + ',\''+ rname + '\',' + min_price + ','+ max_price  +');">首页</a>';
+                var lastPage = '<a href="javascript:load(' + totalPage + ',\''+ rname + '\',' + min_price + ','+ max_price  +');">末页</a>';
+                var beforePageNum = currentPage - 1;
+                if(beforePageNum < 1){
+                    beforePageNum = 1;
+                }
+                var beforePage = '<a href="javascript:load(' + beforePageNum + ',\''+ rname + '\',' + min_price + ','+ max_price  +');">Prev</a>'
+                var afterPageNum = currentPage + 1;
+                if(afterPageNum > totalPage){
+                    afterPageNum = totalPage;
+                }
+                var nextPage = '<a href="javascript:load(' + afterPageNum + ',\''+ rname + '\',' + min_price + ','+ max_price  +');">Next</a>'
+                var li = '';
+                for (let i = begin; i <= end; i++) {
+                    //判断该页码是否为当前页码
+                    if(i == currentPage){
+                        li += '<a class="active" href="javascript:load(' + i + ',\''+ rname + '\',' + min_price + ','+ max_price  +');">' + i + '</a>'
+                    }else {
+                        li += '<a href="javascript:load(' + i + ',\''+ rname + '\',' + min_price + ','+ max_price  +');">' + i + '</a>'
+                    }
+                }
+                //填写标签
+                $("#pageNum").html(firstPage + beforePage + li + nextPage + lastPage);
+            })
+        }
+
+    </script>
+    <style>
+        #pageNum a{
+            margin-right: 15px;
+        }
+        #search_route{
+            line-height: 20px;
+            margin-left: 20px;
+            cursor: pointer;
+        }
+    </style>
+    <body>
+    <!--引入头部-->
+    <div id="header"></div>
+        <div class="contant" style="padding-top: 105px">
+            <div class="shaixuan">
+                <span>线路名称</span>
+                <input type="text" id="root_name">
+                <span>金额</span>
+                <input type="text" id="min_price" placeholder="0">~<input type="text" id="max_price" placeholder="0">
+                <button id="search_route">搜索</button>
+            </div>
+            <div class="list clearfix">
+                <ul id="allFavorite" style="list-style: none;">
+
+                </ul>
+            </div>
+            <div class="row">
+                <div class="" style="color: black;height: 40px;line-height: 40px;padding-left: 20px">
+                    <i></i> 共
+                    <span id="totalPage"></span> 页 <span id="totalCount"></span> 条记录
+                </div>
+                <div class="custom-pagination col-lg" style="margin-left: 15px">
+                    <ul id="pageNum" >
+                    </ul>
+                </div>
+            </div>
+        </div>
+    	
+         <!--导入底部-->
+   		 <div id="footer"></div>
+    <script src="js/main.js"></script>
+    </body>
+</html>

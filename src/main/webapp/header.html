@@ -1,0 +1,152 @@
+<script src="js/getParameter.js"></script>
+<script>
+    $(function () {
+        $.get("user/findLoginUser", function (data) {
+            //{uid:xx,name:xx}
+            $("#span_username").html("欢迎回来，" + data.name)
+        })
+        $.get("category/findAll", function (data) {
+            //[{cid:xx,cname:xx},{},{}]
+            //获取cid
+            var cid = getParameter("cid");
+            //导航条数据填充
+            var list = '';
+            //汉堡菜单数据填充
+            var li_hanbao = '';
+            var uri = window.location.pathname;
+            if (uri == '/travel/index.html') {
+                //当前为主页
+                list = '<li class="active"><a style="color: black" href="index.html">首页</a></li>'
+                li_hanbao = '<li class="active"><a href="index.html">首页</a></li>'
+            } else {
+                //不为主页
+                list = '<li><a style="color: black" href="index.html">首页</a></li>'
+                li_hanbao = '<li><a href="index.html">首页</a></li>'
+            }
+
+            //遍历数组，拼接字符串
+            for (let i = 0; i < data.length; i++) {
+                //判断当前页面是否为激活状态
+                if (cid == data[i].cid) {
+                    list += '<li class="nav-link text-left active"><a style="color: black" href="route_list.html?cid=' + data[i].cid + '"> ' + data[i].cname + '</a></li>';
+                    li_hanbao += '<li class="active"><a href="route_list.html?cid=' + data[i].cid + '"> ' + data[i].cname + '</a></li>';
+                } else {
+                    list += '<li class="nav-link text-left"><a style="color: black" href="route_list.html?cid=' + data[i].cid + '"> ' + data[i].cname + '</a></li>';
+                    li_hanbao += '<li><a href="route_list.html?cid=' + data[i].cid + '"> ' + data[i].cname + '</a></li>';
+                }
+            }
+            //拼接收藏排行榜li
+            if (uri == "/travel/favoriterank.html"){
+                list += '<li class="active nav-link text-left"><a style="color: black" href="favoriterank.html">收藏排行榜</a></li>';
+                li_hanbao += '<li class="active"><a href="favoriterank.html">收藏排行榜</a></li>';
+                list += '<li class="nav-link text-left">\n' +
+                    '       <div class="input-group input-group-sm" style="">\n' +
+                    '           <input id="search_input" type="text" class="form-control" placeholder="Search for Route">\n' +
+                    '           <span>\n' +
+                    '                <button style="cursor: pointer" type="button" onclick="search()">Go!</button>\n' +
+                    '           </span>\n' +
+                    '        </div>\n' +
+                    '    </li>';
+            }else {
+                list += '<li class="nav-link text-left"><a style="color: black" href="favoriterank.html">收藏排行榜</a></li>';
+                li_hanbao += '<li><a href="favoriterank.html">收藏排行榜</a></li>';
+                list += '<li class="nav-link text-left">\n' +
+                    '       <div class="input-group input-group-sm" style="">\n' +
+                    '           <input id="search_input" type="text" class="form-control" placeholder="Search for Route">\n' +
+                    '           <span>\n' +
+                    '                <button style="cursor: pointer" type="button" onclick="search()">Go!</button>\n' +
+                    '           </span>\n' +
+                    '        </div>\n' +
+                    '    </li>';
+            }
+            if (uri == "/travel/myfavorite.html"){
+                list += '<li class="active nav-link text-left"><a style="color: black" id="check_login" href="javascript:check_login();">My Favorite</a>';
+                li_hanbao += '<li class="active"><a id="check_login" href="javascript:check_login();">My Favorite</a>';
+            }else {
+                list += '<li class="nav-link text-left"><a style="color: black" id="check_login" href="javascript:check_login();">My Favorite</a>';
+                li_hanbao += '<li><a id="check_login" href="javascript:check_login();">My Favorite</a>';
+            }
+            list += '<li><a style="color: black" href="javascript:location.href=\'user/exit\';">Exit</a></li>';
+            li_hanbao += '<li><a href="javascript:location.href=\'user/exit\';">Exit</a></li>';
+
+            $("#category").html(list);
+            $("#hanbaobao").html(li_hanbao);
+
+
+            //拼接首页
+            if (uri == '/travel/index.html') {
+                //当前为主页
+                list = '<li class="active"><a href="index.html">首页</a></li>'
+            } else {
+                //不为主页
+                list = '<li><a href="index.html">首页</a></li>'
+            }
+
+        })
+
+    })
+    function check_login() {
+        //当用户点击我的收藏按钮，发送Ajax请求判断用户是否登录
+        $.get('user/findLoginUser', function (user) {
+            if (user == null) {
+                //用户未登录，跳转到登陆页面
+                alert("您还未登录，请登录！")
+                location.href = 'login.html';
+            } else {
+                //用户已登录
+                location.href = 'myfavorite.html';
+            }
+        })
+    }
+    function search() {
+        //搜索
+        //获取输入标签的内容
+        var rname = $("#search_input").val();
+        //获取cid
+        var cid = getParameter("cid");
+        //跳转路径  http://localhost/travel/route/pageQuery?cid=5&ranme=xxx
+        location.href="route_list.html?cid=" + cid + "&rname=" + rname;
+    }
+</script>
+<style>
+    #category li a:after{
+        background: black;
+    }
+</style>
+<header class="site-navbar py-4 site-navbar-target" role="banner" id="header" style="padding-bottom: 0">
+
+    <div class="site-mobile-menu site-navbar-target">
+        <div class="site-mobile-menu-header">
+            <div class="site-mobile-menu-close mt-3">
+                <span class="icon-close2 js-menu-toggle"></span>
+            </div>
+        </div>
+        <div class="site-mobile-menu-body">
+            <ul class="site-nav-wrap" id="hanbaobao">
+            </ul>
+        </div>
+    </div>
+    <div class="container">
+        <div class="d-flex align-items-center">
+            <div class="mr-auto">
+                <nav class="site-navigation position-relative text-right" role="navigation">
+                    <ul class="site-menu main-menu js-clone-nav mr-auto d-none d-lg-block" id="category">
+                    </ul>
+
+                </nav>
+            </div>
+            <div class="ml-auto">
+                <div class="social-wrap">
+                    <span id="span_username"></span>
+                    <a href="#" class="d-inline-block d-lg-none site-menu-toggle js-menu-toggle text-black"><span
+                    class="icon-menu h3 text-black-50" style="position: relative; top: 7px;"></span></a>
+                </div>
+            </div>
+
+
+
+            </div>
+        </div>
+        </div>
+    </div>
+</header>

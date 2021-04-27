@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>登录</title>
+	<script src="js/jquery-3.3.1.min.js"></script>
+	<script src="js/bootstrap.min.js"></script>
+	<script src="js/aos.js"></script>
+	<link rel="stylesheet" href="css/bootstrap.min.css">
+	<link rel="stylesheet" href="css/style.css">
+	<script>
+		$(function () {
+			//给登录按钮绑定单击事件
+			$("#loginForm").submit(function () {
+				//发送ajax请求
+				$.post("user/login",$(this).serialize(),function (data) {
+					//处理前台数据  {flag:xxx,errorMsg:xxx}
+					console.log(data)
+					if(data.flag){
+						//登陆成功
+						location.href="route_list.html";
+					}else {
+						//登陆失败
+						//重新设置验证码
+						changeCheckCode($("#check_img")[0]);
+						$("#errorMsg").html(data.errorMsg);
+						$("#errorMsg").css("display","block");
+					}
+				});
+				//阻止表单提交
+				return false;
+			})
+		})
+	</script>
+</head>
+
+
+<body>
+
+	<div class="site-section">
+		<div class="container">
+			<div class="row justify-content-center">
+				<form class="col-lg-5" id="loginForm" action="" method="post" accept-charset="utf-8">
+					<h2 class="mb-5 text-black" style="margin-bottom: 1rem !important;margin-top: -3rem !important"><strong>Login</strong></h2>
+					<div class="row">
+						<div class="col-md-12 form-group">
+							<label>用户名</label>
+							<input name="username" type="text" class="form-control form-control-lg">
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-md-12 form-group">
+							<label>密码</label>
+							<input name="password" type="password" class="form-control form-control-lg">
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-md-12 form-group">
+							<label style="display: block">验证码</label>
+							<input name="check" type="text" class="form-control form-control-lg" style="width: 40%;display: inline-block">
+							<span><img style="height: 55px;width:40%;float: right" src="checkCode" id="check_img" alt="" onclick="changeCheckCode(this)"></span>
+							<script type="text/javascript">
+								//图片点击事件
+								function changeCheckCode(img) {
+									img.src="checkCode?"+new Date().getTime();
+								}
+							</script>
+						</div>
+					</div>
+
+					<div class="row">
+						<div class="col-12">
+							<input type="submit" id="btn_sub" value="Login" class="btn btn-primary btn-lg px-5">
+							<a href="index.html" style="line-height: 60px;font-size: 12px;float: right">/我不想登录，随便看看?</a>
+							<a href="register.html" style="line-height: 60px;font-size: 12px;float: right">没有账号，去注册?</a>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-12" style="margin-top: 20px">
+							<div id="errorMsg"  class="alert alert-danger" style="display: none"></div>
+						</div>
+					</div>
+				</form>
+
+			</div>
+
+		</div>
+	</div>
+
+</body>
+</html>

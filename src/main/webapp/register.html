@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>注册</title>
+		<script src="js/jquery-3.3.1.min.js"></script>
+		<script src="js/bootstrap.min.js"></script>
+		<script src="js/aos.js"></script>
+		<link rel="stylesheet" href="css/bootstrap.min.css">
+		<link rel="stylesheet" href="css/style.css">
+
+		<script>
+			/**
+			 *  表单校验
+			    1.用户名：单词字符，长度8-20位
+			 	2.密码；单词字符，长度8-20位
+			 	3.email：邮件格式
+			 	4.姓名：非空
+			 	5.手机号：手机号格式
+			 	6.出生日期：非空
+			 	7.验证码：非空
+			 */
+
+			//校验用户名
+			function checkUsername() {
+				//1.获取用户名值
+				var username = $("#username").val();
+				//2.判断正则
+				var reg_username = /^\w{8,20}$/;
+				//3.判断，给出提示信息
+				var flag = reg_username.test(username);
+				if(flag){
+					//合法
+					$("#username").css("border","");
+				}else {
+					//非法
+					$("#username").css("border","1px solid red");
+				}
+				return flag;
+			}
+			//校验密码
+			function checkPassword() {
+				//1.获取密码值
+				var password = $("#password").val();
+				//2.判断正则
+				var reg_password = /^\w{8,20}$/;
+				//3.判断，给出提示信息
+				var flag = reg_password.test(password);
+				if(flag){
+					//合法
+					$("#password").css("border","");
+				}else {
+					//非法
+					$("#password").css("border","1px solid red");
+				}
+				return flag;
+			}
+			//校验邮箱
+			function checkEmail(){
+				//获取邮箱
+				var email = $("#email").val();
+				//定义正则
+				var reg_email = /^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/;
+				//判断
+				var flag = reg_email.test(email);
+				if(flag){
+					//合法
+					$("#email").css("border","");
+				}else {
+					//非法
+					$("#email").css("border","1px solid red");
+				}
+				return flag;
+			}
+			//校验姓名
+			function checkName() {
+				//1.获取姓名值
+				var flag = $("#name").val();
+				if(flag){
+					//合法
+					$("#name").css("border","");
+				}else {
+					//非法
+					$("#name").css("border","1px solid red");
+				}
+				return flag;
+			}
+			//校验手机号
+			function checkTelephone() {
+				//1.获取手机号值
+				var telephone = $("#telephone").val();
+				//2.判断正则
+				var reg_telephone = /^(13[0-9]|14[5|7]|15[0|1|2|3|5|6|7|8|9]|18[0|1|2|3|5|6|7|8|9])\d{8}$/;
+				//3.判断，给出提示信息
+				var flag = reg_telephone.test(telephone);
+				if(flag){
+					//合法
+					$("#telephone").css("border","");
+				}else {
+					//非法
+					$("#telephone").css("border","1px solid red");
+				}
+				return flag;
+			}
+			//校验出生日期
+			function checkBirthday() {
+				//1.获取出生日期值
+				var flag = $("#birthday").val();
+				if(flag){
+					//合法
+					$("#birthday").css("border","");
+				}else {
+					//非法
+					$("#birthday").css("border","1px solid red");
+				}
+				return flag;
+			}
+			//校验验证码
+			function checkCode() {
+				//1.获取验证码值
+				var flag = $("#check").val();
+				if(flag){
+					//合法
+					$("#check").css("border","");
+				}else {
+					//非法
+					$("#check").css("border","1px solid red");
+				}
+				return flag;
+			}
+
+
+			$(function () {
+				//当表单提交时，调用所有的校验方法
+				$("#registerForm").submit(function () {
+					if(checkUsername() && checkPassword() && checkEmail() && checkName() &&
+							checkTelephone() && checkBirthday() && checkCode()){
+						$.post("user/regist",$(this).serialize(),function (data) {
+							//处理服务器数据data	{flag:xxx,errorMsg:xxx}
+							if(data.flag){
+								//注册成功，跳转成功页面
+								location.href="register_ok.html";
+							}else {
+								//注册失败
+								//重新设置验证码
+								changeCheckCode($("#check_img")[0]);
+								$("#errorMsg").html(data.errorMsg);
+								$("#errorMsg").css("display","block");
+							}
+						});
+					}
+					// $.post("user/regist",$(this).serialize(),function (data) {
+					// 	//处理服务器数据data	{flag:xxx,errorMsg:xxx}
+					// 	if(data.flag){
+					// 		//注册成功，跳转成功页面
+					// 		location.href="register_ok.html";
+					// 	}else {
+					// 		//注册失败
+					// 		//重新设置验证码
+					// 		changeCheckCode($("#check_img")[0]);
+					// 		$("#errorMsg").html(data.errorMsg);
+					// 		$("#errorMsg").css("display","block");
+					// 	}
+					// });
+
+
+					//2.不让页面跳转
+					return false;
+				});
+				//当某一个组件失去焦点时，调用对应的校验方法
+				$("#username").blur(checkUsername);
+				$("#password").blur(checkPassword);
+				$("#email").blur(checkEmail);
+				$("#name").blur(checkName);
+				$("#telephone").blur(checkTelephone);
+				$("#birthday").blur(checkBirthday);
+				$("#check").blur(checkCode);
+			})
+		</script>
+    </head>
+	<body>
+		<div class="site-section">
+			<div class="container">
+				<div class="row justify-content-center">
+					<form class="col-lg-5" id="registerForm" action="" method="post" accept-charset="utf-8">
+						<h2 class="mb-5 text-black" style="margin-bottom: 1rem !important;margin-top: -3rem !important"><strong>Register</strong></h2>
+						<div class="row">
+							<div class="col-md-12 form-group" >
+								<label>用户名</label>
+								<input id="username" name="username" type="text" class="form-control form-control-lg"  style="height: 40px">
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-md-12 form-group">
+								<label>密码</label>
+								<input id="password" name="password" type="password" class="form-control form-control-lg" style="height: 40px">
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-md-12 form-group">
+								<label>Email</label>
+								<input id="email" name="email" type="text" class="form-control form-control-lg" style="height: 40px">
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-md-12 form-group">
+								<label>姓名</label>
+								<input id="name" name="name" type="text" class="form-control form-control-lg" style="height: 40px">
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-md-12 form-group">
+								<label>手机号</label>
+								<input id="telephone" name="telephone" type="text" class="form-control form-control-lg" style="height: 40px">
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-md-12 form-group">
+								<label style="display: block">性别</label>
+								<input type="radio" id="sex" name="sex" value="男" checked style="height: 40px;"> <span style="line-height: 40px;vertical-align: top;margin-right: 20px">男</span>
+								<input type="radio" name="sex" value="女" style="height: 40px"> <span style="line-height: 40px;vertical-align: top">女</span>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-md-12 form-group">
+								<label>出生日期</label>
+								<input id="birthday" name="birthday" type="date" class="form-control form-control-lg" style="height: 40px">
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-md-12 form-group">
+								<label style="display: block">验证码</label>
+								<input name="check" id="check" type="text" class="form-control form-control-lg" style="width: 40%;display: inline-block;height: 40px">
+								<span><img style="height: 55px;width:40%;float: right" src="checkCode" id="check_img" alt="" onclick="changeCheckCode(this)"></span>
+								<script type="text/javascript">
+									//图片点击事件
+									function changeCheckCode(img) {
+										img.src="checkCode?"+new Date().getTime();
+									}
+								</script>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-12">
+								<input type="submit" id="btn_sub" value="Register" class="btn btn-primary btn-lg px-5">
+								<a href="login.html" style="float: right;line-height: 60px;padding-right: 10px">已有帐号，去登陆?</a>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-12" style="margin-top: 20px">
+								<div id="errorMsg"  class="alert alert-danger" style="display: none"></div>
+							</div>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+    </body>
+</html>
